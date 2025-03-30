@@ -1,10 +1,7 @@
-package com.grimeyy.backend.controller;
+package com.grimeyy.backend.user;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.grimeyy.backend.model.User;
-import com.grimeyy.backend.user.UserRepository;
 
 import java.util.List;
 

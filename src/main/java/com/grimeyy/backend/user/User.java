@@ -1,4 +1,4 @@
-package com.grimeyy.backend.model;
+package com.grimeyy.backend.user;
 
 import jakarta.persistence.*;
 
