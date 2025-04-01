@@ -27,22 +27,22 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<User> user = userRepository.findByUsername(request.getUsername());
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
 
         if (user.isPresent() && passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
-            String token = jwtUtil.generateToken(user.get().getUsername());
+            String token = jwtUtil.generateToken(user.get().getEmail());
             return ResponseEntity.ok(Map.of("token", token));
         }
         return ResponseEntity.status(401).body("Invalid credentials");
     }
 
-    @PostMapping("/register")
+    @PostMapping("/sign-up")
     public ResponseEntity<?> register(@RequestBody LoginRequest request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already taken");
         }
 
-        User newUser = new User(null, request.getUsername(), passwordEncoder.encode(request.getPassword()));
+        User newUser = new User(null, request.getEmail(), passwordEncoder.encode(request.getPassword()));
         userRepository.save(newUser);
         return ResponseEntity.ok("User registered successfully");
     }

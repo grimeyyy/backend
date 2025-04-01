@@ -1,14 +1,10 @@
 package com.grimeyy.backend.user;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-
+import lombok.*;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "users")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class User {
@@ -18,7 +14,7 @@ public class User {
     private Long id;
 	
     @Column(unique = true, nullable = false)
-    private String username;
+    private String email;
     
     @Column(nullable = false)
     private String password;
