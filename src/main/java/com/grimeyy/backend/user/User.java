@@ -1,5 +1,7 @@
 package com.grimeyy.backend.user;
 
+import java.time.Instant;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,5 +20,13 @@ public class User {
     
     @Column(nullable = false)
     private String password;
+    
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean emailConfirmed = false;
+    
+    private String emailToken;
+    
+    @Column(nullable = false)
+    private Instant emailTokenExpiration;
 
 }

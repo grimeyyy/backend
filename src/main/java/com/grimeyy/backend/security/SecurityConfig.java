@@ -20,7 +20,12 @@ public class SecurityConfig {
         	.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         	.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/sign-up").permitAll()
+                .requestMatchers(
+                	"/api/auth/login",
+                	"/api/auth/sign-up",
+                	"/api/auth/verify-email", 
+                	"/api/auth/resend-confirmation"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
