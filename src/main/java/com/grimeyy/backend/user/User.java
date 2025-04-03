@@ -28,5 +28,9 @@ public class User {
     
     @Column(nullable = false)
     private Instant emailTokenExpiration;
+    
+    private String passwordResetToken;
+
+    private Instant passwordResetTokenExpiration;
 
 }

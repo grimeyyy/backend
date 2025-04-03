@@ -24,7 +24,9 @@ public class SecurityConfig {
                 	"/api/auth/login",
                 	"/api/auth/sign-up",
                 	"/api/auth/verify-email", 
-                	"/api/auth/resend-confirmation"
+                	"/api/auth/resend-confirmation",
+                	"/api/auth/forgot-password",
+                	"/api/auth/reset-password"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
