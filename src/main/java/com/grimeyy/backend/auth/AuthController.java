@@ -3,8 +3,6 @@ package com.grimeyy.backend.auth;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
 import com.grimeyy.backend.security.JwtUtil;
 import com.grimeyy.backend.user.User;
-import com.grimeyy.backend.user.UserRepository;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,12 +20,9 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+    	Optional<User> userOptional = authService.findUserByEmail(request.getEmail());
 
         if (userOptional.isEmpty() || !authService.passwordMatches(request.getPassword(), userOptional.get())) {
             throw new RuntimeException("ERROR.INVALID_CREDENTIALS");
