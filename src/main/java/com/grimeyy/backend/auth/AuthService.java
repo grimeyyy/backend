@@ -1,5 +1,6 @@
 package com.grimeyy.backend.auth;
 
+import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.user.User;
 import com.grimeyy.backend.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,7 +59,7 @@ public class AuthService {
 
     public void sendVerificationEmail(String email, String token) {
         sendEmail(email, "Confirm your email",
-                "Click the link to verify your email: " + baseUrl + "/api/auth/verify-email?token=" + token);
+                "Click the link to verify your email: " + frontendUrl + "/verify-email?token=" + token);
     }
 
     public void sendPasswordResetEmail(String email, String token) {
@@ -99,19 +101,19 @@ public class AuthService {
         Optional<User> userOptional = userRepository.findByEmailToken(token);
 
         if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("Invalid or expired token.");
+        	throw new BadRequestException("ERROR.INVALID_OR_EXPIRED_TOKEN");
         }
 
         User user = userOptional.get();
         if (user.getEmailTokenExpiration().isBefore(Instant.now())) {
-            return ResponseEntity.badRequest().body("Expired token.");
+        	throw new BadRequestException("ERROR.EXPIRED_TOKEN");
         }
 
         user.setEmailConfirmed(true);
         user.setEmailToken(null);
         userRepository.save(user);
 
-        return ResponseEntity.ok("Email successfully verified. You can now log in.");
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.EMAIL_SUCCESSFULLY_VERIFIED"));
     }
 
     public void resetUserPassword(User user, String newPassword) {

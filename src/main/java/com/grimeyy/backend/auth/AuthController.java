@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> register(@RequestBody LoginRequest request) throws BadRequestException {
+    public ResponseEntity<?> register(@RequestBody LoginRequest request) {
         if (authService.findUserByEmail(request.getEmail()).isPresent()) {
         	throw new BadRequestException("ERROR.EMAIL_ALREADY_IN_USE");
         }
@@ -48,7 +48,7 @@ public class AuthController {
         User newUser = authService.createNewUser(request.getEmail(), request.getPassword());
         authService.sendVerificationEmail(newUser.getEmail(), newUser.getEmailToken());
 
-        return ResponseEntity.ok("User registered. Please verify your email.");
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.USER_REGISTERED_VERIFY_YOUR_EMAIL"));
     }
 
     @GetMapping("/verify-email")
@@ -59,20 +59,20 @@ public class AuthController {
     @PostMapping("/resend-confirmation")
     public ResponseEntity<?> resendConfirmation(@RequestParam("email") String email) {
         User user = authService.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
 
         if (user.isEmailConfirmed()) {
-            return ResponseEntity.badRequest().body("Email already confirmed!");
+        	throw new BadRequestException("ERROR.EMAIL_ALREADY_IN_CONFIRMED");
         }
 
         if (authService.isEmailTokenValid(user)) {
-            return ResponseEntity.badRequest().body("Token is still valid!");
+        	throw new BadRequestException("ERROR.TOKEN_IS_STILL_VALID");
         }
 
         authService.generateEmailToken(user);
         authService.sendVerificationEmail(user.getEmail(), user.getEmailToken());
 
-        return ResponseEntity.ok("New confirmation email sent!");
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.NEW_CONFIRMATION_EMAIL_SENT"));
     }
 
     @PostMapping("/forgot-password")
@@ -80,12 +80,12 @@ public class AuthController {
         String email = request.get("email");
 
         User user = authService.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
 
         authService.generatePasswordResetToken(user);
         authService.sendPasswordResetEmail(user.getEmail(), user.getPasswordResetToken());
 
-        return ResponseEntity.ok("Password reset email sent!");
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.PASSWORD_RESET_EMAIL_SENT"));
     }
 
     @PostMapping("/reset-password")
@@ -94,13 +94,13 @@ public class AuthController {
         String newPassword = request.get("newPassword");
 
         User user = authService.findUserByResetToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
+                .orElseThrow(() -> new RuntimeException("ERROR.INVALID_OR_EXPIRED_TOKEN"));
 
         if (authService.isResetTokenExpired(user)) {
-            return ResponseEntity.badRequest().body("Token expired");
+        	throw new BadRequestException("ERROR.TOKEN_EXPIRED");
         }
 
         authService.resetUserPassword(user, newPassword);
-        return ResponseEntity.ok("Password successfully reset");
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.PASSWORD_SUCCESSFULLY_RESET"));
     }
 }
