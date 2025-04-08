@@ -1,10 +1,12 @@
 package com.grimeyy.backend.auth;
 
+import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
 import com.grimeyy.backend.security.JwtUtil;
 import com.grimeyy.backend.user.User;
 import java.util.Map;
 import java.util.Optional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +40,9 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> register(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> register(@RequestBody LoginRequest request) throws BadRequestException {
         if (authService.findUserByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already in use");
+        	throw new BadRequestException("ERROR.EMAIL_ALREADY_IN_USE");
         }
 
         User newUser = authService.createNewUser(request.getEmail(), request.getPassword());
