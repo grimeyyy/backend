@@ -56,7 +56,7 @@ public class AuthController {
         return authService.verifyEmail(token);
     }
 
-    @PostMapping("/resend-confirmation")
+    @PostMapping("/resend-verification")
     public ResponseEntity<?> resendConfirmation(@RequestParam("email") String email) {
         User user = authService.findUserByEmail(email)
                 .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));

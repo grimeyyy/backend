@@ -106,7 +106,7 @@ public class AuthService {
 
         User user = userOptional.get();
         if (user.getEmailTokenExpiration().isBefore(Instant.now())) {
-        	throw new BadRequestException("ERROR.EXPIRED_TOKEN");
+        	throw new BadRequestException("ERROR.TOKEN_EXPIRED");
         }
 
         user.setEmailConfirmed(true);
