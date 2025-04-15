@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.grimeyy.backend.security.JwtUtil;
 
+import jakarta.transaction.Transactional;
 import lombok.*;
 
 @RestController
@@ -21,37 +22,24 @@ public class UserDataController {
 
     @GetMapping
     public UserDataDto getProfile(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
+    	String email = extractEmail(authHeader);
 
         UserData user = userDataService.getUserByEmail(email);
-        return userDataMapper.toDto(user);
-    }
-
-    @PutMapping
-    public UserDataDto updateProfile(@RequestBody UserDataDto dto, @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
-
-        UserData user = userDataService.getUserByEmail(email);
-        userDataMapper.updateFromDto(dto, user);
-        userDataService.saveUserData(user);
-
         return userDataMapper.toDto(user);
     }
     
+    @Transactional
     @PutMapping("/update")
-    public ResponseEntity<?> update(@RequestBody UserDataDto dto, @RequestHeader("Authorization") String authHeader) {
-        String email = jwtUtil.extractEmail(authHeader.substring(7));
+    public ResponseEntity<?> updateProfile(@RequestBody UserDataDto dto, @RequestHeader("Authorization") String authHeader) {
+    	String email = extractEmail(authHeader);
         UserData updatedUser = userDataService.updateUserData(email, dto);
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(userDataMapper.toDto(updatedUser));
     }
 
 
     @PostMapping("/avatar")
     public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String authHeader) throws IOException {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
+    	String email = extractEmail(authHeader);
 
         UserData user = userDataService.getUserByEmail(email);
         userDataService.uploadAvatar(user, file);
@@ -61,15 +49,18 @@ public class UserDataController {
 
     @GetMapping(value = "/avatar", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE })
     public ResponseEntity<byte[]> getAvatar(@RequestHeader("Authorization") String authHeader) throws IOException {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
+        String email = extractEmail(authHeader);
 
         UserData user = userDataService.getUserByEmail(email);
         byte[] avatar = userDataService.getAvatar(user.getId());
 
         return ResponseEntity.ok()
-            .contentType(MediaType.IMAGE_JPEG) 
+        	.contentType(MediaType.valueOf(user.getAvatarContentType()))
             .body(avatar);
+    }
+    
+    private String extractEmail(String authHeader) {
+        return jwtUtil.extractEmail(authHeader.substring(7));
     }
 }
 
