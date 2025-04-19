@@ -4,11 +4,16 @@ import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
 import com.grimeyy.backend.security.JwtUtil;
 import com.grimeyy.backend.user.User;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +28,8 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-    	Optional<User> userOptional = authService.findUserByEmail(request.getEmail());
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+        Optional<User> userOptional = authService.findUserByEmail(request.getEmail());
 
         if (userOptional.isEmpty() || !authService.passwordMatches(request.getPassword(), userOptional.get())) {
             throw new RuntimeException("ERROR.INVALID_CREDENTIALS");
@@ -37,13 +42,37 @@ public class AuthController {
 
         String accessToken = jwtUtil.generateToken(user.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+
         authService.saveRefreshToken(user, refreshToken);
 
-        return ResponseEntity.ok(Map.of(
-            "token", accessToken,
-            "refreshToken", refreshToken
-        ));
+        // set cookie
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true) // only over HTTPS in production
+                .path("/api/auth/refresh")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok(Map.of("token", accessToken));
     }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/auth/refresh")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", deleteCookie.toString());
+        return ResponseEntity.ok(Map.of("message", "SUCCESS.LOGGED_OUT"));
+    }
+
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> register(@RequestBody LoginRequest request) {
@@ -112,9 +141,7 @@ public class AuthController {
     }
     
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-
+    public ResponseEntity<?> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
         if (refreshToken == null) {
             throw new BadRequestException("ERROR.MISSING_REFRESH_TOKEN");
         }
