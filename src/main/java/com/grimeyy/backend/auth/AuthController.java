@@ -40,7 +40,7 @@ public class AuthController {
             throw new ForbiddenAccessException("ERROR.VERIFY_EMAIL_BEFORE_LOGIN");
         }
 
-        String accessToken = jwtUtil.generateToken(user.getEmail());
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
         authService.saveRefreshToken(user, refreshToken);
@@ -57,6 +57,30 @@ public class AuthController {
         response.addHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(Map.of("token", accessToken));
+    }
+    
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            throw new BadRequestException("ERROR.MISSING_REFRESH_TOKEN");
+        }
+
+        String email;
+        try {
+            email = jwtUtil.extractEmail(refreshToken);
+        } catch (Exception e) {
+            throw new BadRequestException("ERROR.INVALID_REFRESH_TOKEN");
+        }
+
+        User user = authService.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
+
+        if (!authService.isRefreshTokenValid(user, refreshToken)) {
+            throw new BadRequestException("ERROR.INVALID_OR_EXPIRED_REFRESH_TOKEN");
+        }
+
+        String newAccessToken = jwtUtil.generateAccessToken(email);
+        return ResponseEntity.ok(Map.of("token", newAccessToken));
     }
     
     @PostMapping("/logout")
@@ -140,28 +164,4 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "SUCCESS.PASSWORD_SUCCESSFULLY_RESET"));
     }
     
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
-        if (refreshToken == null) {
-            throw new BadRequestException("ERROR.MISSING_REFRESH_TOKEN");
-        }
-
-        String email;
-        try {
-            email = jwtUtil.extractEmail(refreshToken);
-        } catch (Exception e) {
-            throw new BadRequestException("ERROR.INVALID_REFRESH_TOKEN");
-        }
-
-        User user = authService.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
-
-        if (!authService.isRefreshTokenValid(user, refreshToken)) {
-            throw new BadRequestException("ERROR.INVALID_OR_EXPIRED_REFRESH_TOKEN");
-        }
-
-        String newAccessToken = jwtUtil.generateToken(email);
-        return ResponseEntity.ok(Map.of("token", newAccessToken));
-    }
-
 }

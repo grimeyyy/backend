@@ -9,6 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.grimeyy.backend.user.data.UserData;
+import com.grimeyy.backend.user.data.UserDataRepository;
+import com.grimeyy.backend.user.data.UserDataService;
+
 class UserDataServiceTest {
 
     @Mock

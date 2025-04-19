@@ -13,6 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grimeyy.backend.user.data.UserData;
+import com.grimeyy.backend.user.data.UserDataController;
+import com.grimeyy.backend.user.data.UserDataService;
 
 class UserDataControllerTest {
 

@@ -1,4 +1,4 @@
-package com.grimeyy.backend.user;
+package com.grimeyy.backend.user.data;
 
 import java.io.IOException;
 import org.springframework.http.MediaType;

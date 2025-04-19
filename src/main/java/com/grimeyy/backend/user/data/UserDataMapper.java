@@ -1,4 +1,4 @@
-package com.grimeyy.backend.user;
+package com.grimeyy.backend.user.data;
 
 import org.springframework.stereotype.Component;
 

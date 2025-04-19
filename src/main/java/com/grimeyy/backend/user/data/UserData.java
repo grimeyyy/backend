@@ -1,4 +1,6 @@
-package com.grimeyy.backend.user;
+package com.grimeyy.backend.user.data;
+
+import com.grimeyy.backend.user.User;
 
 import jakarta.persistence.*;
 import lombok.*;
