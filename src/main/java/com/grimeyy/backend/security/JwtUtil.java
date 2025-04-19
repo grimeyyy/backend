@@ -3,6 +3,8 @@ package com.grimeyy.backend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -62,6 +64,15 @@ public class JwtUtil {
     public boolean validateToken(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+    
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+            .setSubject(email)
+            .setIssuedAt(new Date())
+            .setExpiration(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
     }
     
 }

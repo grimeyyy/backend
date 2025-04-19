@@ -122,4 +122,15 @@ public class AuthService {
         user.setPasswordResetTokenExpiration(null);
         userRepository.save(user);
     }
+    
+    public void saveRefreshToken(User user, String refreshToken) {
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExpiration(Instant.now().plus(7, ChronoUnit.DAYS));
+        userRepository.save(user);
+    }
+
+    public boolean isRefreshTokenValid(User user, String refreshToken) {
+        return refreshToken.equals(user.getRefreshToken()) &&
+               user.getRefreshTokenExpiration().isAfter(Instant.now());
+    }
 }

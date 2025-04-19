@@ -33,4 +33,8 @@ public class User {
 
     private Instant passwordResetTokenExpiration;
 
+    private String refreshToken;
+    
+    private Instant refreshTokenExpiration;
+
 }

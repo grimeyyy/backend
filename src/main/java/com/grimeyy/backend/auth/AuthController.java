@@ -35,8 +35,14 @@ public class AuthController {
             throw new ForbiddenAccessException("ERROR.VERIFY_EMAIL_BEFORE_LOGIN");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(Map.of("token", token));
+        String accessToken = jwtUtil.generateToken(user.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+        authService.saveRefreshToken(user, refreshToken);
+
+        return ResponseEntity.ok(Map.of(
+            "token", accessToken,
+            "refreshToken", refreshToken
+        ));
     }
 
     @PostMapping("/sign-up")
@@ -104,4 +110,31 @@ public class AuthController {
         authService.resetUserPassword(user, newPassword);
         return ResponseEntity.ok(Map.of("message", "SUCCESS.PASSWORD_SUCCESSFULLY_RESET"));
     }
+    
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+
+        if (refreshToken == null) {
+            throw new BadRequestException("ERROR.MISSING_REFRESH_TOKEN");
+        }
+
+        String email;
+        try {
+            email = jwtUtil.extractEmail(refreshToken);
+        } catch (Exception e) {
+            throw new BadRequestException("ERROR.INVALID_REFRESH_TOKEN");
+        }
+
+        User user = authService.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
+
+        if (!authService.isRefreshTokenValid(user, refreshToken)) {
+            throw new BadRequestException("ERROR.INVALID_OR_EXPIRED_REFRESH_TOKEN");
+        }
+
+        String newAccessToken = jwtUtil.generateToken(email);
+        return ResponseEntity.ok(Map.of("token", newAccessToken));
+    }
+
 }
