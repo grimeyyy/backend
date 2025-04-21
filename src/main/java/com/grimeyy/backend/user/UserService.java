@@ -37,4 +37,3 @@ public class UserService {
                 .orElse(ResponseEntity.notFound().<Void>build());
     }
 }
-
