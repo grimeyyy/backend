@@ -9,5 +9,12 @@ class BackendApplicationTests {
 	@Test
 	void contextLoads() {
 	}
+	
+	@Test
+    void mainMethodRunsWithoutExceptions() {
+        String[] args = new String[] {};
+
+        BackendApplication.main(args);
+    }
 
 }
