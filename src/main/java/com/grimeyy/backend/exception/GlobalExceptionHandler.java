@@ -7,6 +7,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.persistence.EntityNotFoundException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +43,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
     	return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<String> handleDuplicateEmailException(DuplicateEmailException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
