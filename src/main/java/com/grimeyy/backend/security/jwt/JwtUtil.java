@@ -1,4 +1,4 @@
-package com.grimeyy.backend.security;
+package com.grimeyy.backend.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

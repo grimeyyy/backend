@@ -15,6 +15,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.grimeyy.backend.security.jwt.JwtAuthenticationFilter;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,7 +30,8 @@ public class SecurityConfig {
         	.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                	"/api/auth/**"
+                	"/api/auth/**",
+                	"/api/users/**"
                 ).permitAll()
                 .anyRequest().authenticated()
         

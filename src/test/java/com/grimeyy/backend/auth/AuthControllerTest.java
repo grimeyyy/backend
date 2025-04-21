@@ -7,7 +7,8 @@ import jakarta.servlet.http.Cookie;
 
 import com.grimeyy.backend.auth.dto.LoginRequest;
 import com.grimeyy.backend.exception.BadRequestException;
-import com.grimeyy.backend.security.JwtUtil;
+import com.grimeyy.backend.security.jwt.JwtUtil;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

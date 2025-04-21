@@ -6,13 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.grimeyy.backend.security.JwtUtil;
+import com.grimeyy.backend.security.jwt.JwtUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.*;
 
 @RestController
-@RequestMapping("/api/profile")
+@RequestMapping("/api/users/profile")
 @RequiredArgsConstructor
 public class UserDataController {
 
@@ -63,4 +63,3 @@ public class UserDataController {
         return jwtUtil.extractEmail(authHeader.substring(7));
     }
 }
-

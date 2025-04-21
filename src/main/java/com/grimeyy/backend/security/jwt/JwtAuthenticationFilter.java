@@ -1,4 +1,4 @@
-package com.grimeyy.backend.security;
+package com.grimeyy.backend.security.jwt;
 
 import java.io.IOException;
 

@@ -4,7 +4,7 @@ import com.grimeyy.backend.auth.dto.LoginRequest;
 import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
 import com.grimeyy.backend.exception.UnauthorizedException;
-import com.grimeyy.backend.security.JwtUtil;
+import com.grimeyy.backend.security.jwt.JwtUtil;
 import com.grimeyy.backend.user.User;
 
 import jakarta.servlet.http.HttpServletResponse;
