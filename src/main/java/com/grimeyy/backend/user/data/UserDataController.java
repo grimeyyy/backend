@@ -59,6 +59,14 @@ public class UserDataController {
             .body(avatar);
     }
     
+    @DeleteMapping
+    public ResponseEntity<?> deleteProfile(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmail(authHeader);
+
+        userDataService.deleteUserData(email);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+    
     private String extractEmail(String authHeader) {
         return jwtUtil.extractEmail(authHeader.substring(7));
     }

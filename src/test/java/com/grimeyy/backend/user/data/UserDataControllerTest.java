@@ -3,6 +3,8 @@ package com.grimeyy.backend.user.data;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +53,7 @@ public class UserDataControllerTest {
 	    }
 
 	    @Test
-	    void getProfile_shouldReturnUserProfile() throws Exception {
+	    void getProfile_shouldReturnUserData() throws Exception {
 	        when(userDataMapper.toDto(userData)).thenReturn(dto);
 
 	        mockMvc.perform(get("/api/users/profile").header("Authorization", token))
@@ -59,7 +61,7 @@ public class UserDataControllerTest {
 	    }
 
 	    @Test
-	    void updateProfile_shouldUpdateAndReturnUser() throws Exception {
+	    void updateProfile_shouldUpdateAndReturnUserData() throws Exception {
 	        when(userDataService.updateUserData(eq(email), any(UserDataDto.class))).thenReturn(userData);
 	        when(userDataMapper.toDto(userData)).thenReturn(dto);
 
@@ -91,5 +93,14 @@ public class UserDataControllerTest {
 	                .header("Authorization", token))
 	                .andExpect(status().isOk())
 	                .andExpect(content().contentType(MediaType.IMAGE_PNG));
+	    }
+	    
+	    @Test
+	    void deleteProfile_shouldDeleteUserDataAndReturnNoContent() throws Exception {
+	        mockMvc.perform(delete("/api/users/profile")
+	                        .header("Authorization", token))
+	                .andExpect(status().isNoContent());
+
+	        verify(userDataService, times(1)).deleteUserData(email);
 	    }
 }

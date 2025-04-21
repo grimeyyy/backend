@@ -49,5 +49,11 @@ public class UserDataService {
             .orElseThrow(() -> new RuntimeException("User not found"));
         return user.getAvatar();
     }
+    
+    public void deleteUserData(String email) {
+        UserData user = userDataRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userDataRepository.delete(user);
+    }
 }
 
