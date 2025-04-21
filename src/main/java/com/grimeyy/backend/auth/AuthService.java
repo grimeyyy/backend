@@ -97,7 +97,7 @@ public class AuthService {
         return user.getPasswordResetTokenExpiration().isBefore(Instant.now());
     }
 
-    public ResponseEntity<?> verifyEmail(String token) {
+    public ResponseEntity<Map<String,String>> verifyEmail(String token) {
         Optional<User> userOptional = userRepository.findByEmailToken(token);
 
         if (userOptional.isEmpty()) {

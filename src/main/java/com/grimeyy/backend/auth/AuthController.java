@@ -1,5 +1,6 @@
 package com.grimeyy.backend.auth;
 
+import com.grimeyy.backend.auth.dto.LoginRequest;
 import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
 import com.grimeyy.backend.security.JwtUtil;
