@@ -3,6 +3,7 @@ package com.grimeyy.backend.auth;
 import com.grimeyy.backend.auth.dto.LoginRequest;
 import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.exception.ForbiddenAccessException;
+import com.grimeyy.backend.exception.UnauthorizedException;
 import com.grimeyy.backend.security.JwtUtil;
 import com.grimeyy.backend.user.User;
 
@@ -33,7 +34,7 @@ public class AuthController {
         Optional<User> userOptional = authService.findUserByEmail(request.getEmail());
 
         if (userOptional.isEmpty() || !authService.passwordMatches(request.getPassword(), userOptional.get())) {
-            throw new RuntimeException("ERROR.INVALID_CREDENTIALS");
+            throw new UnauthorizedException("ERROR.INVALID_CREDENTIALS");
         }
 
         User user = userOptional.get();
@@ -123,7 +124,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("ERROR.USER_NOT_FOUND"));
 
         if (user.isEmailConfirmed()) {
-        	throw new BadRequestException("ERROR.EMAIL_ALREADY_IN_CONFIRMED");
+        	throw new BadRequestException("ERROR.EMAIL_ALREADY_CONFIRMED");
         }
 
         if (authService.isEmailTokenValid(user)) {
@@ -155,7 +156,7 @@ public class AuthController {
         String newPassword = request.get("newPassword");
 
         User user = authService.findUserByResetToken(token)
-                .orElseThrow(() -> new RuntimeException("ERROR.INVALID_OR_EXPIRED_TOKEN"));
+                .orElseThrow(() -> new BadRequestException("ERROR.INVALID_OR_EXPIRED_TOKEN"));
 
         if (authService.isResetTokenExpired(user)) {
         	throw new BadRequestException("ERROR.TOKEN_EXPIRED");

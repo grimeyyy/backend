@@ -6,6 +6,7 @@ import com.grimeyy.backend.user.User;
 import jakarta.servlet.http.Cookie;
 
 import com.grimeyy.backend.auth.dto.LoginRequest;
+import com.grimeyy.backend.exception.BadRequestException;
 import com.grimeyy.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +98,18 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(new LoginRequest(email, password))))
                 .andExpect(status().isForbidden());
     }
+    
+    @Test
+    void login_shouldFail_whenUserNotFound() throws Exception {
+        when(authService.findUserByEmail(email)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequest(email, password))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("ERROR.INVALID_CREDENTIALS"));
+    }
+
 
     @Test
     void refreshToken_success() throws Exception {
@@ -114,6 +127,30 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("newAccessToken"));
     }
+    
+    @Test
+    void refreshToken_shouldFail_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.MISSING_REFRESH_TOKEN"));
+    }
+
+    @Test
+    void refreshToken_shouldFail_whenTokenInvalidOrExpired() throws Exception {
+        String refreshToken = "expiredToken";
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExpiration(Instant.now().minus(1, ChronoUnit.HOURS));
+
+        when(jwtUtil.extractEmail(refreshToken)).thenReturn(email);
+        when(authService.findUserByEmail(email)).thenReturn(Optional.of(user));
+        when(authService.isRefreshTokenValid(user, refreshToken)).thenReturn(false);
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .cookie(new Cookie("refreshToken", refreshToken)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.INVALID_OR_EXPIRED_REFRESH_TOKEN"));
+    }
+
 
     @Test
     void register_success() throws Exception {
@@ -125,6 +162,17 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(new LoginRequest(email, password))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("SUCCESS.USER_REGISTERED_VERIFY_YOUR_EMAIL"));
+    }
+    
+    @Test
+    void register_shouldFail_whenEmailAlreadyExists() throws Exception {
+        when(authService.findUserByEmail(email)).thenReturn(Optional.of(user));
+
+        mockMvc.perform(post("/api/auth/sign-up")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequest(email, password))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.EMAIL_ALREADY_IN_USE"));
     }
 
     @Test
@@ -140,6 +188,20 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("SUCCESS.EMAIL_SUCCESSFULLY_VERIFIED"));
     }
+    
+    @Test
+    void verifyEmail_shouldFail_whenTokenInvalid() throws Exception {
+        String token = "invalidToken";
+
+        when(authService.verifyEmail(eq(token)))
+                .thenThrow(new BadRequestException("ERROR.INVALID_TOKEN"));
+
+        mockMvc.perform(get("/api/auth/verify-email")
+                .param("token", token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.INVALID_TOKEN"));
+    }
+
 
     @Test
     void resendVerification_success() throws Exception {
@@ -154,6 +216,20 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("SUCCESS.NEW_CONFIRMATION_EMAIL_SENT"));
     }
+    
+    @Test
+    void resendVerification_shouldFail_whenEmailAlreadyConfirmed() throws Exception {
+        user.setEmailConfirmed(true);
+
+        when(authService.findUserByEmail(email)).thenReturn(Optional.of(user));
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("email", email))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.EMAIL_ALREADY_CONFIRMED"));
+    }
+
 
     @Test
     void forgotPassword_success() throws Exception {
@@ -184,6 +260,41 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("SUCCESS.PASSWORD_SUCCESSFULLY_RESET"));
     }
+    
+    @Test
+    void resetPassword_shouldFail_whenTokenInvalid() throws Exception {
+        String token = "invalidToken";
+        when(authService.findUserByResetToken(token)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                        "token", token,
+                        "newPassword", "newPassword123"
+                ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.INVALID_OR_EXPIRED_TOKEN"));
+    }
+
+    @Test
+    void resetPassword_shouldFail_whenTokenExpired() throws Exception {
+        String token = "expiredToken";
+        user.setPasswordResetToken(token);
+        user.setPasswordResetTokenExpiration(Instant.now().minus(5, ChronoUnit.MINUTES));
+
+        when(authService.findUserByResetToken(token)).thenReturn(Optional.of(user));
+        when(authService.isResetTokenExpired(user)).thenReturn(true);
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                        "token", token,
+                        "newPassword", "newPassword123"
+                ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ERROR.TOKEN_EXPIRED"));
+    }
+
 
     @Test
     void logout_success() throws Exception {
