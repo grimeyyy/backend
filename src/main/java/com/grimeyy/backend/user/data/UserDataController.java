@@ -64,7 +64,7 @@ public class UserDataController {
         String email = extractEmail(authHeader);
 
         userDataService.deleteUserData(email);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
     
     private String extractEmail(String authHeader) {
